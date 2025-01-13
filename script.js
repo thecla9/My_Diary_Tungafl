@@ -1,11 +1,11 @@
-// Utility: Set a cookie with a specific name, value, and expiration days
+// Set a cookie with a specific name, value, and expiration days
 function setCookie(name, value, days) {
     const expires = new Date();
     expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
     document.cookie = `${name}=${value}; expires=${expires.toUTCString()}; path=/`;
 }
 
-// Utility: Get a cookie by name
+// Get cookie 
 function getCookie(name) {
     const cookieArr = document.cookie.split(';');
     for (let cookie of cookieArr) {
@@ -17,7 +17,7 @@ function getCookie(name) {
     return null;
 }
 
-// Utility: Get JWT token from the cookie
+//Get JWT token from the cookie
 function getJWT() {
     return getCookie('jwt');
 }
@@ -30,10 +30,9 @@ function blockAccessWithoutToken() {
     // Only show the alert and redirect if we're not on the index page
     if (!jwt && !isIndexPage) {
         alert("You are not logged in!");
-        // Wait for the user to acknowledge the alert, then redirect
         setTimeout(() => {
-            window.location.href = "/index.html"; // Or any login page URL
-        }, 100); // Delay redirection by 100ms to ensure the alert is seen
+            window.location.href = "/index.html"; 
+        }, 100);
     }
 }
 
@@ -136,7 +135,7 @@ if (loginForm) {
             .then(response => {
                 const { token } = response.data;
                 if (token) {
-                    setCookie("jwt", token, 7); // Set JWT cookie for 7 days
+                    setCookie("jwt", token, 14); // Set JWT cookie for 7 days
                     alert("Login successful! Welcome to Your Diary!");
                     window.location.href = "/home.html"; // Redirect to home page
                 }
@@ -157,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (jwt) {
         loadEntries();
     } else {
-        document.body.style.display = "block"; // Show the content even without a token
+        document.body.style.display = "block"; 
     }
 });
 
