@@ -1,11 +1,11 @@
-// Set a cookie with a specific name, value, and expiration days
+// Function to set a cookie with a specific name, value, and expiration days
 function setCookie(name, value, days) {
     const expires = new Date();
     expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
     document.cookie = `${name}=${value}; expires=${expires.toUTCString()}; path=/`;
 }
 
-// Get cookie 
+// Get cookie value by name
 function getCookie(name) {
     const cookieArr = document.cookie.split(';');
     for (let cookie of cookieArr) {
@@ -17,7 +17,7 @@ function getCookie(name) {
     return null;
 }
 
-//Get JWT token from the cookie
+// Get JWT token from the cookie
 function getJWT() {
     return getCookie('jwt');
 }
@@ -25,13 +25,11 @@ function getJWT() {
 // Block access to the page if no JWT token is found, excluding the index page
 function blockAccessWithoutToken() {
     const jwt = getJWT();
-    const isIndexPage = window.location.pathname === "/index.html";
-
-    // Only show the alert and redirect if we're not on the index page
+    const isIndexPage = window.location.pathname.includes("index.html");
     if (!jwt && !isIndexPage) {
         alert("You are not logged in!");
         setTimeout(() => {
-            window.location.href = "/index.html"; 
+            window.location.href = "/index.html";
         }, 100);
     }
 }
@@ -51,7 +49,7 @@ function displayEntries() {
 
     entries.forEach((entry, index) => {
         const tr = document.createElement("tr");
-        tr.innerHTML = ` 
+        tr.innerHTML = `
             <td>${index + 1}</td>
             <td>${entry.title}</td>
             <td>${entry.content}</td>
@@ -67,7 +65,23 @@ function displayEntries() {
     tbody.querySelectorAll(".edit-btn").forEach((btn) => {
         btn.addEventListener("click", (e) => {
             const index = e.target.getAttribute("data-index");
-            editEntry(index);
+            const modal = document.getElementById("modal");
+            const title = document.getElementById("title");
+            const content = document.getElementById("content");
+            const entry = entries[index];
+            if (title && content) {
+                title.value = entry.title;
+                content.value = entry.content;
+                document.getElementById("entryId").value = entry.id;
+
+                if (modal) {
+                    modal.style.display = "block";
+                    modal.style.position = "absolute";
+                }
+                editEntry(index);
+            } else {
+                console.error("Modal or form elements not found.");
+            }
         });
     });
 
@@ -116,11 +130,18 @@ async function deleteEntry(index) {
 // Edit an entry
 function editEntry(index) {
     const entry = entries[index];
-    document.getElementById("title1").value = entry.title;
-    document.getElementById("content1").value = entry.content;
-    document.getElementById("formAction").value = "edit";
-    document.getElementById("entryId").value = entry.id;
-    document.getElementById("createForm").scrollIntoView();
+    const title1 = document.getElementById("title1");
+    const content1 = document.getElementById("content1");
+
+    if (title1 && content1) {
+        title1.value = entry.title;
+        content1.value = entry.content;
+        document.getElementById("formAction").value = "edit";
+        document.getElementById("entryId").value = entry.id;
+        document.getElementById("modalForm").scrollIntoView();
+    } else {
+        console.error("Form elements not found.");
+    }
 }
 
 // Handle login functionality
@@ -135,7 +156,7 @@ if (loginForm) {
             .then(response => {
                 const { token } = response.data;
                 if (token) {
-                    setCookie("jwt", token, 14); // Set JWT cookie for 7 days
+                    setCookie("jwt", token, 14); // Set JWT cookie for 14 days
                     alert("Login successful! Welcome to Your Diary!");
                     window.location.href = "/home.html"; // Redirect to home page
                 }
@@ -150,13 +171,15 @@ if (loginForm) {
 // Initialize application and load entries
 document.addEventListener("DOMContentLoaded", () => {
     blockAccessWithoutToken(); // Block access if no valid token is found
-    const jwt = getJWT();
 
-    // Load entries if JWT is found
-    if (jwt) {
+    const jwt = getJWT();
+    const isIndexPage = window.location.pathname.includes("index.html");
+
+    // Only load entries if JWT is found and not on the index page
+    if (jwt && !isIndexPage) {
         loadEntries();
-    } else {
-        document.body.style.display = "block"; 
+    } else if (isIndexPage) {
+        document.body.style.display = "block"; // Ensure index page is visible
     }
 });
 
@@ -165,7 +188,7 @@ function updatePageForEntries() {
     const emptyState = document.getElementById("emptyState");
     const entriesSection = document.getElementById("entriesSection");
     const createBtn = document.querySelector('.create-btn');
-    
+
     if (emptyState && entriesSection) {
         if (entries.length > 0) {
             emptyState.style.display = 'none';  // Hide the empty state message
@@ -180,7 +203,7 @@ function updatePageForEntries() {
                 createBtn.style.display = 'block';  // Show the "Create Diary" button
             }
         }
-    } 
+    }
 }
 
 // Create or update an entry
